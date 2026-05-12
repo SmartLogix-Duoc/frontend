@@ -27,7 +27,9 @@ export function AuthProvider({ children }) {
         setUser({
           userId:   payload.userId,
           username: payload.sub,
-          role:     payload.role,   // 'ADMIN' | 'USER'
+          // internal_role lleva el rol real (ADMIN | USER | CLIENT)
+          // payload.role lleva "authenticated" (para Supabase), se usa como fallback
+          role:     payload.internal_role ?? payload.role,
         })
       }
     }
@@ -42,7 +44,7 @@ export function AuthProvider({ children }) {
       setUser({
         userId:   payload.userId,
         username: payload.sub,
-        role:     payload.role,
+        role:     payload.internal_role ?? payload.role,
       })
     }
   }
