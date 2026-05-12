@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react' // Importamos Hooks necesarios
+import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import { getShipmentById, getShipmentTracking } from '../api'
 
 // Mantenemos los objetos de configuración de estilos y etiquetas
 const estadoEstilo = {
@@ -26,33 +27,34 @@ const pasos = ['PENDING', 'IN_TRANSIT', 'DELIVERED']
 
 function Envio() {
   const { id } = useParams()
-  // 1. Estado para almacenar el envío que viene de la API
   const [envio, setEnvio] = useState(null)
+  const [tracking, setTracking] = useState([])
   const [cargando, setCargando] = useState(true)
 
-  // 2. Efecto para llamar al Microservicio de Envíos (puerto 8004)
   useEffect(() => {
     const obtenerDetalleEnvio = async () => {
       try {
         setCargando(true)
-        const response = await fetch(`http://localhost:8004/api/shipments/${id}`, {
-          headers: { 
-            'Authorization': `Bearer ${localStorage.getItem('token')}` 
-          }
-        })
-        if (response.ok) {
-          const data = await response.json()
-          setEnvio(data)
+        // GET /api/shipments/:id → ShipmentResponse
+        const { data } = await getShipmentById(id)
+        setEnvio(data)
+
+        // GET /api/shipments/:id/tracking → TrackingEventResponse[]
+        try {
+          const { data: trackingData } = await getShipmentTracking(id)
+          setTracking(trackingData)
+        } catch {
+          // El tracking es opcional; no bloqueamos si falla
+          setTracking([])
         }
       } catch (error) {
-        console.error("Error al conectar con el servidor de envíos:", error)
+        console.error('Error al conectar con el servidor de envíos:', error)
       } finally {
         setCargando(false)
       }
     }
-
     obtenerDetalleEnvio()
-  }, [id]) // Si el ID cambia, vuelve a buscar la información
+  }, [id])
 
   // 3. Pantalla de carga
   if (cargando) {
@@ -172,26 +174,32 @@ function Envio() {
       {/* Historial de Tracking */}
       <div className="bg-white border border-gray-200 rounded-xl p-6">
         <h2 className="text-sm font-semibold text-gray-600 uppercase mb-4">Historial</h2>
-        <div className="flex flex-col gap-4">
-          {envio.tracking && [...envio.tracking].reverse().map((evento, i) => (
-            <div key={i} className="flex gap-4">
-              <div className="flex flex-col items-center">
-                <div className={`w-3 h-3 rounded-full shrink-0 mt-0.5 ${i === 0 ? 'bg-blue-900' : 'bg-gray-300'}`} />
-                {i < envio.tracking.length - 1 && <div className="w-0.5 bg-gray-200 flex-1 mt-1" />}
-              </div>
-              <div className="pb-4">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${estadoEstilo[evento.status]}`}>
-                    {estadoLabel[evento.status]}
-                  </span>
-                  <span className="text-xs text-gray-400">{evento.date}</span>
+        {tracking.length === 0 ? (
+          <p className="text-sm text-gray-400">Sin eventos de tracking registrados.</p>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {[...tracking].reverse().map((evento, i) => (
+              <div key={evento.id ?? i} className="flex gap-4">
+                <div className="flex flex-col items-center">
+                  <div className={`w-3 h-3 rounded-full shrink-0 mt-0.5 ${i === 0 ? 'bg-blue-900' : 'bg-gray-300'}`} />
+                  {i < tracking.length - 1 && <div className="w-0.5 bg-gray-200 flex-1 mt-1" />}
                 </div>
-                <p className="text-sm text-gray-700">{evento.description}</p>
-                {evento.location && <p className="text-xs text-gray-400 mt-0.5">📍 {evento.location}</p>}
+                <div className="pb-4">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${estadoEstilo[evento.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                      {estadoLabel[evento.status] ?? evento.status}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      {evento.occurred_at ? new Date(evento.occurred_at).toLocaleString('es-CL') : evento.date}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-700">{evento.description}</p>
+                  {evento.location && <p className="text-xs text-gray-400 mt-0.5">📍 {evento.location}</p>}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
     </div>

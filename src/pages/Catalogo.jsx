@@ -1,51 +1,49 @@
-import { useState, useEffect } from 'react' // Importamos useEffect
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { getAllProducts } from '../api'
 
 function Catalogo() {
-  // 1. Ahora el estado de productos empieza como una lista vacía
   const [productos, setProductos] = useState([])
   const [busqueda, setBusqueda] = useState('')
   const [categoriaActiva, setCategoriaActiva] = useState('Todas')
+  const [cargando, setCargando] = useState(true)
+  const [error, setError] = useState('')
 
-  // 2. useEffect para disparar la búsqueda de datos cuando se cargue el componente
   useEffect(() => {
     const obtenerProductos = async () => {
       try {
-        const response = await fetch('http://localhost:8002/api/inventario/', {
-          headers: { 
-            'Authorization': `Bearer ${localStorage.getItem('token')}` 
-          }
-        })
-        if (response.ok) {
-          const data = await response.json()
-          setProductos(data)
-        } else {
-          console.error("Error al obtener productos")
-        }
-      } catch (error) {
-        console.error("Error de conexión:", error)
+        setCargando(true)
+        // GET /api/products → ProductDTO[]
+        const { data } = await getAllProducts()
+        setProductos(data)
+      } catch (err) {
+        setError('No se pudo cargar el catálogo. Verifica tu conexión.')
+        console.error('Error al obtener productos:', err)
+      } finally {
+        setCargando(false)
       }
     }
-
     obtenerProductos()
-  }, []) // El array vacío [] significa que esto solo se ejecuta UNA VEZ al cargar
+  }, [])
 
-  // 3. Generamos las categorías dinámicamente basadas en lo que llegue de la API
-  const categorias = ['Todas', ...new Set(productos.map(p => p.categoria))]
+  // Campos del ProductDTO: id, name, description, price
+  // Mapeamos "name" → "nombre" y "price" → "precio" para el filtrado y la UI
+  const categorias = ['Todas', ...new Set(productos.map(p => p.category).filter(Boolean))]
 
   const productosFiltrados = productos.filter(p => {
-    const coincideBusqueda = p.nombre.toLowerCase().includes(busqueda.toLowerCase())
-    const coincideCategoria = categoriaActiva === 'Todas' || p.categoria === categoriaActiva
+    const nombre = p.name || p.nombre || ''
+    const categoria = p.category || p.categoria || ''
+    const coincideBusqueda = nombre.toLowerCase().includes(busqueda.toLowerCase())
+    const coincideCategoria = categoriaActiva === 'Todas' || categoria === categoriaActiva
     return coincideBusqueda && coincideCategoria
   })
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
-      {/* ... (El resto del JSX se mantiene igual que tu código original) ... */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-blue-900 mb-1">Catálogo SmartLogix</h1>
         <p className="text-gray-500 text-sm">
-          {productosFiltrados.length} productos disponibles
+          {cargando ? 'Cargando...' : `${productosFiltrados.length} productos disponibles`}
         </p>
       </div>
 
@@ -74,13 +72,28 @@ function Catalogo() {
         </div>
       </div>
 
+      {/* Estado de carga y error */}
+      {cargando && (
+        <div className="text-center py-20 text-gray-400">
+          <p className="animate-pulse text-lg">Cargando catálogo...</p>
+        </div>
+      )}
+
+      {!cargando && error && (
+        <div className="bg-red-50 border-l-4 border-red-500 text-red-700 text-sm rounded-r-lg px-4 py-3">
+          {error}
+        </div>
+      )}
+
       {/* Grid de Productos */}
-      {productosFiltrados.length === 0 ? (
+      {!cargando && !error && productosFiltrados.length === 0 && (
         <div className="text-center py-20 text-gray-400">
           <p className="text-4xl mb-3">🔍</p>
           <p className="text-lg font-medium">Sin productos en el inventario</p>
         </div>
-      ) : (
+      )}
+
+      {!cargando && !error && productosFiltrados.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {productosFiltrados.map(producto => (
             <Link
@@ -92,16 +105,14 @@ function Catalogo() {
                 <span className="text-4xl">📦</span>
               </div>
               <div className="flex-1">
-                <span className="text-xs text-blue-600 font-medium">{producto.categoria}</span>
-                <h3 className="text-sm font-semibold text-gray-800 mt-0.5 leading-tight">{producto.nombre}</h3>
+                <span className="text-xs text-blue-600 font-medium">{producto.category || producto.categoria || 'General'}</span>
+                <h3 className="text-sm font-semibold text-gray-800 mt-0.5 leading-tight">
+                  {producto.name || producto.nombre}
+                </h3>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-blue-900 font-bold text-sm">
-                  ${Number(producto.precio).toLocaleString('es-CL')}
-                </span>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium
-                  ${producto.stock > 10 ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                  {producto.stock} en stock
+                  ${Number(producto.price ?? producto.precio ?? 0).toLocaleString('es-CL')}
                 </span>
               </div>
             </Link>

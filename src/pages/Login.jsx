@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom' // Añadimos useNavigate
+import { Link, useNavigate } from 'react-router-dom'
+import { login } from '../api'
 
 function Login() {
   const [form, setForm] = useState({ email: '', password: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const navigate = useNavigate() // Para redirigir al usuario tras el éxito
+  const navigate = useNavigate()
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -18,28 +19,13 @@ function Login() {
     setError('')
 
     try {
-      // 1. Conexión con el MS de Usuarios (Puerto 8001)
-      const response = await fetch('http://localhost:8001/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        // 2. Guardamos el token en el almacenamiento local
-        // Nota: Asegúrate de que tu API devuelva 'access_token' o ajusta el nombre
-        localStorage.setItem('token', data.access_token)
-        
-        // 3. Redirigimos al catálogo
-        navigate('/catalogo')
-      } else {
-        // Manejo de errores del servidor (credenciales incorrectas, etc.)
-        setError(data.message || 'Credenciales incorrectas. Intenta de nuevo.')
-      }
+      // POST /auth/login → { token }
+      const { data } = await login(form)
+      localStorage.setItem('token', data.token)
+      navigate('/catalogo')
     } catch (err) {
-      setError('Error de conexión con el servidor de autenticación.')
+      const msg = err.response?.data?.message || err.response?.data?.error
+      setError(msg || 'Credenciales incorrectas. Intenta de nuevo.')
     } finally {
       setLoading(false)
     }
