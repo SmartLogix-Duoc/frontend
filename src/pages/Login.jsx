@@ -1,10 +1,14 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+import { login as loginService } from '../api/perfilService'
 
 function Login() {
-  const [form, setForm] = useState({ email: '', password: '' })
+  const [form, setForm]       = useState({ username: '', password: '' })
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [error, setError]     = useState('')
+  const navigate              = useNavigate()
+  const { login }             = useAuth()
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -14,20 +18,22 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
+    setError('')
 
-    // TODO: conectar con POST /auth/login del MS Usuarios
-    // const response = await fetch('http://localhost:8001/auth/login', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(form)
-    // })
-    // const data = await response.json()
-    // localStorage.setItem('token', data.access_token)
-
-    setTimeout(() => {
+    try {
+      // perfilService retorna el token, AuthContext lo guarda y actualiza el estado
+      const token = await loginService({
+        username: form.username,
+        password: form.password,
+      })
+      login(token)
+      navigate('/catalogo')
+    } catch (err) {
+      const msg = err.response?.data?.message ?? err.response?.data?.error
+      setError(msg ?? 'Usuario o contraseña incorrectos.')
+    } finally {
       setLoading(false)
-      setError('Conectar con el backend para habilitar el login.')
-    }, 800)
+    }
   }
 
   return (
@@ -47,14 +53,14 @@ function Login() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
             <label className="text-sm font-medium text-gray-700 block mb-1">
-              Correo electrónico
+              Usuario
             </label>
             <input
-              type="email"
-              name="email"
-              value={form.email}
+              type="text"
+              name="username"
+              value={form.username}
               onChange={handleChange}
-              placeholder="tu@empresa.cl"
+              placeholder="tu_usuario"
               required
               className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -87,7 +93,7 @@ function Login() {
             disabled={loading}
             className="bg-blue-900 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-800 transition-colors disabled:opacity-60 mt-2"
           >
-            {loading ? 'Ingresando...' : 'Iniciar Sesión'}
+            {loading ? 'Ingresando…' : 'Iniciar Sesión'}
           </button>
         </form>
 

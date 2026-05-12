@@ -1,38 +1,57 @@
-import { useState } from 'react'
+
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-
-const productos = [
-  { id: 1, nombre: 'Laptop Dell XPS 15', categoria: 'Electrónica', precio: 1299990, stock: 15 },
-  { id: 2, nombre: 'Monitor LG 27"', categoria: 'Electrónica', precio: 349990, stock: 8 },
-  { id: 3, nombre: 'Teclado Mecánico Logitech', categoria: 'Periféricos', precio: 89990, stock: 32 },
-  { id: 4, nombre: 'Mouse Inalámbrico', categoria: 'Periféricos', precio: 29990, stock: 50 },
-  { id: 5, nombre: 'Silla Ergonómica', categoria: 'Muebles', precio: 459990, stock: 5 },
-  { id: 6, nombre: 'Escritorio Standing', categoria: 'Muebles', precio: 599990, stock: 3 },
-  { id: 7, nombre: 'Auriculares Sony WH-1000XM5', categoria: 'Electrónica', precio: 299990, stock: 12 },
-  { id: 8, nombre: 'Webcam Logitech C920', categoria: 'Periféricos', precio: 79990, stock: 20 },
-]
-
-const categorias = ['Todas', ...new Set(productos.map(p => p.categoria))]
+import axios from 'axios'
 
 function Catalogo() {
-  const [busqueda, setBusqueda] = useState('')
-  const [categoriaActiva, setCategoriaActiva] = useState('Todas')
+  const [productos, setProductos]         = useState([])
+  const [busqueda, setBusqueda]           = useState('')
+  const [loading, setLoading]             = useState(true)
+  const [error, setError]                 = useState(null)
 
-  // TODO: reemplazar productos hardcodeados con:
-  // const [productos, setProductos] = useState([])
-  // useEffect(() => {
-  //   fetch('http://localhost:8002/api/inventario/', {
-  //     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-  //   })
-  //   .then(r => r.json())
-  //   .then(data => setProductos(data))
-  // }, [])
+  // ── Carga de productos desde MS Inventario ────────────────────────────────
+  useEffect(() => {
+    const token = localStorage.getItem('token')
 
-  const productosFiltrados = productos.filter(p => {
-    const coincideBusqueda = p.nombre.toLowerCase().includes(busqueda.toLowerCase())
-    const coincideCategoria = categoriaActiva === 'Todas' || p.categoria === categoriaActiva
-    return coincideBusqueda && coincideCategoria
-  })
+    // GET /api/products → [{ id, name, description, price }, ...]
+    // El ProductDTO no incluye categoria ni stock
+    axios
+      .get('http://localhost:8002/api/products', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(res => {
+        const lista = Array.isArray(res.data) ? res.data : (res.data.data ?? [])
+        setProductos(lista)
+      })
+      .catch(err => setError(err.response?.data?.error ?? err.message))
+      .finally(() => setLoading(false))
+  }, [])
+
+  // ── Filtrado por nombre (categoria no existe en el backend) ───────────────
+  const productosFiltrados = productos.filter(p =>
+    p.name.toLowerCase().includes(busqueda.toLowerCase())
+  )
+
+  // ── Estados de carga y error ──────────────────────────────────────────────
+
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto px-6 py-20 text-center text-gray-400">
+        Cargando catálogo…
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-6xl mx-auto px-6 py-20 text-center">
+        <p className="text-red-600 font-medium">Error al cargar el catálogo</p>
+        <p className="text-sm text-gray-400 mt-1">{error}</p>
+      </div>
+    )
+  }
+
+  // ── Vista principal ───────────────────────────────────────────────────────
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
@@ -45,29 +64,15 @@ function Catalogo() {
         </p>
       </div>
 
-      {/* Búsqueda y filtros */}
-      <div className="flex flex-col md:flex-row gap-4 mb-8">
+      {/* Búsqueda */}
+      <div className="mb-8">
         <input
           type="text"
-          placeholder="Buscar producto..."
+          placeholder="Buscar producto…"
           value={busqueda}
           onChange={e => setBusqueda(e.target.value)}
           className="border border-gray-300 rounded-lg px-4 py-2.5 text-sm w-full md:max-w-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-        <div className="flex gap-2 flex-wrap">
-          {categorias.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setCategoriaActiva(cat)}
-              className={`text-sm px-4 py-2 rounded-full border transition-colors
-                ${categoriaActiva === cat
-                  ? 'bg-blue-900 text-white border-blue-900'
-                  : 'border-gray-300 text-gray-600 hover:border-blue-400'}`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* Grid de productos */}
@@ -75,7 +80,7 @@ function Catalogo() {
         <div className="text-center py-20 text-gray-400">
           <p className="text-4xl mb-3">🔍</p>
           <p className="text-lg font-medium">Sin resultados</p>
-          <p className="text-sm">Intenta con otro término o categoría</p>
+          <p className="text-sm">Intenta con otro término de búsqueda</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -92,26 +97,20 @@ function Catalogo() {
 
               {/* Info */}
               <div className="flex-1">
-                <span className="text-xs text-blue-600 font-medium">
-                  {producto.categoria}
-                </span>
                 <h3 className="text-sm font-semibold text-gray-800 mt-0.5 leading-tight">
-                  {producto.nombre}
+                  {producto.name}
                 </h3>
+                {producto.description && (
+                  <p className="text-xs text-gray-400 mt-1 line-clamp-2">
+                    {producto.description}
+                  </p>
+                )}
               </div>
 
-              {/* Precio y stock */}
+              {/* Precio */}
               <div className="flex items-center justify-between">
                 <span className="text-blue-900 font-bold text-sm">
-                  ${producto.precio.toLocaleString('es-CL')}
-                </span>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium
-                  ${producto.stock > 10
-                    ? 'bg-green-100 text-green-700'
-                    : producto.stock > 0
-                      ? 'bg-yellow-100 text-yellow-700'
-                      : 'bg-red-100 text-red-600'}`}>
-                  {producto.stock > 0 ? `${producto.stock} en stock` : 'Sin stock'}
+                  ${Number(producto.price).toLocaleString('es-CL')}
                 </span>
               </div>
             </Link>
