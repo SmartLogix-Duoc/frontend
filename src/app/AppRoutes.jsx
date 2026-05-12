@@ -1,9 +1,9 @@
 import { Routes, Route } from 'react-router-dom'
 import Landing  from '../pages/Landing'
 import Login    from '../pages/Login'
-import Perfil   from '../pages/Perfil'
 import Catalogo from '../pages/Catalogo'
 import Producto from '../pages/Producto'
+import Perfil   from '../pages/Perfil'
 import Pedido   from '../pages/Pedido'
 import Envio    from '../pages/Envio'
 import PrivateRoute from './PrivateRoute'
@@ -12,21 +12,13 @@ function AppRoutes() {
   return (
     <Routes>
 
-      {/* ── Rutas públicas ───────────────────────────────────────────────── */}
-      <Route path="/"      element={<Landing />} />
-      <Route path="/login" element={<Login />} />
+      {/* ── Rutas públicas: cualquiera puede acceder ──────────────────────── */}
+      <Route path="/"             element={<Landing />} />
+      <Route path="/login"        element={<Login />} />
+      <Route path="/catalogo"     element={<Catalogo />} />
+      <Route path="/producto/:id" element={<Producto />} />
 
-      {/* ── Rutas protegidas: ADMIN y USER ───────────────────────────────── */}
-      <Route path="/catalogo" element={
-        <PrivateRoute roles={['ADMIN', 'USER']}>
-          <Catalogo />
-        </PrivateRoute>
-      } />
-      <Route path="/producto/:id" element={
-        <PrivateRoute roles={['ADMIN', 'USER']}>
-          <Producto />
-        </PrivateRoute>
-      } />
+      {/* ── Rutas protegidas: requieren sesión activa ─────────────────────── */}
       <Route path="/pedidos" element={
         <PrivateRoute roles={['ADMIN', 'USER']}>
           <Pedido />
@@ -44,7 +36,6 @@ function AppRoutes() {
       } />
 
       {/* ── Rutas protegidas: solo ADMIN ─────────────────────────────────── */}
-      {/* Aquí irían páginas de administración cuando las haya */}
       {/* <Route path="/admin/..." element={
         <PrivateRoute roles={['ADMIN']}>
           <AdminPage />
@@ -52,7 +43,6 @@ function AppRoutes() {
       } /> */}
 
       {/* ── Rutas protegidas: CLIENT (reservado, sin página aún) ─────────── */}
-      {/* Pendiente de implementación y de que el backend emita role: 'CLIENT' en el JWT */}
       <Route path="/client" element={
         <PrivateRoute roles={['CLIENT']}>
           <div className="min-h-screen flex items-center justify-center text-center px-6">
