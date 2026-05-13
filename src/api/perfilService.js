@@ -1,17 +1,17 @@
 import axios from 'axios'
- 
-const BASE_URL = 'http://localhost:8001'
- 
+
+const BASE_URL = import.meta.env.VITE_AUTH_URL
+
 const api = axios.create({ baseURL: BASE_URL })
- 
+
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('token')
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
- 
+
 // ── Endpoints ─────────────────────────────────────────────────────────────────
- 
+
 /**
  * Inicia sesión y retorna el token.
  * El guardado en localStorage y actualización del estado
@@ -24,7 +24,7 @@ export const login = async ({ username, password }) => {
   const res = await api.post('/auth/login', { username, password })
   return res.data.token
 }
- 
+
 /**
  * Obtiene el perfil del usuario autenticado.
  * GET /api/v1/auth/profile/{userId}
@@ -36,7 +36,7 @@ export const getPerfil = async (userId) => {
   const res = await api.get(`/api/v1/auth/profile/${userId}`)
   return res.data
 }
- 
+
 /**
  * Actualiza los datos editables del perfil.
  * PUT /api/v1/auth/profile/{userId}

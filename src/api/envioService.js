@@ -1,8 +1,7 @@
 import axios from 'axios'
 
-const BASE_URL = 'http://localhost:8004'
+const BASE_URL = import.meta.env.VITE_ENVIOS_URL
 
-// Instancia axios con baseURL y header de auth inyectado automáticamente
 const api = axios.create({ baseURL: BASE_URL })
 
 api.interceptors.request.use(config => {

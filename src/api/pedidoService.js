@@ -1,8 +1,7 @@
 import axios from 'axios'
 
-const BASE_URL = 'http://localhost:8003/api/v1'
+const BASE_URL = `${import.meta.env.VITE_PEDIDOS_URL}/api/v1`
 
-// Instancia axios con baseURL y header de auth inyectado automáticamente
 const api = axios.create({ baseURL: BASE_URL })
 
 api.interceptors.request.use(config => {
@@ -20,7 +19,6 @@ api.interceptors.request.use(config => {
  */
 export const getPedidos = async () => {
   const res = await api.get('/orders/')
-  // El backend devuelve { success: true, data: [...] }
   return Array.isArray(res.data) ? res.data : (res.data.data ?? [])
 }
 
