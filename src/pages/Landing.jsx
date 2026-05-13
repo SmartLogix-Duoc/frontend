@@ -1,154 +1,120 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { Package, ShoppingCart, Truck, User, TrendingUp, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Package, ShoppingCart, Truck, User, LayoutDashboard, Settings } from 'lucide-react'
 
 const cards = [
   {
+    Icon: LayoutDashboard,
+    title: 'Panel de Control',
+    desc: 'Visión general del estado de tu negocio en tiempo real.',
+    link: '/gestion',
+    label: 'Ir al Panel',
+    color: 'text-indigo-600',
+    bg: 'bg-indigo-50'
+  },
+  {
     Icon: Package,
     title: 'Gestión de Inventario',
-    desc: 'Administra tu catálogo, categorías y stock disponible',
-    link: '/inventario', // ¡LINK CORREGIDO!
-    label: 'Ir a Inventario',
+    desc: 'Administra productos, stock y categorías.',
+    link: '/catalogo', // Podrías cambiar esto a /inventario si ya limpiaste la ruta
+    label: 'Controlar Stock',
     color: 'text-blue-600',
-    bg: 'bg-blue-100'
+    bg: 'bg-blue-50'
   },
   {
     Icon: ShoppingCart,
     title: 'Control de Pedidos',
-    desc: 'Revisa y gestiona los pedidos recibidos de tus clientes',
+    desc: 'Gestiona ventas entrantes y estados de pago.',
     link: '/pedidos',
-    label: 'Ver Pedidos',
+    label: 'Gestionar Ventas',
     color: 'text-emerald-600',
-    bg: 'bg-emerald-100'
+    bg: 'bg-emerald-50'
   },
   {
     Icon: Truck,
-    title: 'Logística y Envíos',
-    desc: 'Rastrea cada entrega y gestiona los estados de despacho',
-    link: '/pedidos', // Usualmente los envíos se gestionan desde el pedido
-    label: 'Gestionar Envíos',
+    title: 'Logística de Envíos',
+    desc: 'Seguimiento de rutas y tiempos de entrega.',
+    link: '/pedidos',
+    label: 'Rastrear Envíos',
     color: 'text-amber-600',
-    bg: 'bg-amber-100'
-  },
-  {
-    Icon: User,
-    title: 'Mi Perfil PYME',
-    desc: 'Configuración de cuenta, sucursales y datos del negocio',
-    link: '/perfil',
-    label: 'Ir a Perfil',
-    color: 'text-purple-600',
-    bg: 'bg-purple-100'
-  },
+    bg: 'bg-amber-50'
+  }
 ]
 
 function Landing() {
   const { user } = useAuth()
   
-  const now = new Date()
-  const dateStr = now.toLocaleDateString('es-CL', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
-
-  // Determinamos el rol visualmente
-  const isSuperAdmin = user?.role === 'ADMIN'
-
   return (
-    <div className="min-h-screen bg-[#F4F7FB] flex flex-col">
-      
-      {/* ── HEADER SAAS MODERNO ── */}
-      <header className="bg-gradient-to-r from-blue-900 to-blue-800 pb-24 pt-10 px-6 shadow-inner">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <header className="bg-white border-b border-gray-200 px-8 py-10">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <p className="text-blue-200 text-sm capitalize mb-1">{dateStr}</p>
-            <h1 className="text-3xl font-bold text-white tracking-tight">
-              Bienvenido, {user?.username || 'Usuario'} 👋
+            <h1 className="text-3xl font-black text-gray-900 tracking-tight">
+              Dashboard de <span className="text-blue-900">Gestión</span>
             </h1>
-            <p className="text-blue-100 text-sm mt-2">
-              Panel de control principal de tu negocio
+            <p className="text-gray-500 mt-1 font-medium">
+              Hola, {user?.username} • Bienvenido al centro operativo de SmartLogix
             </p>
           </div>
-          
-          {/* Badge de Rol */}
-          <div className={`px-4 py-1.5 rounded-full text-xs font-bold border flex items-center gap-2 ${isSuperAdmin ? 'bg-amber-500/20 border-amber-400 text-amber-300' : 'bg-white/10 border-white/20 text-white'}`}>
-            <span className={`w-2 h-2 rounded-full ${isSuperAdmin ? 'bg-amber-400' : 'bg-green-400'} animate-pulse`}></span>
-            {isSuperAdmin ? 'SUPER ADMIN (SmartLogix)' : 'ADMINISTRADOR (PYME)'}
+          <div className="flex gap-3">
+            <Link to="/perfil" className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">
+              <User className="w-4 h-4" /> Mi Cuenta
+            </Link>
           </div>
         </div>
       </header>
 
-      {/* ── CONTENIDO SUPERPUESTO (-mt-12 para dar efecto 3D) ── */}
-      <main className="flex-1 max-w-6xl mx-auto w-full px-6 -mt-12 mb-12">
-        
-        {/* Estadísticas Rápidas (Mockup visual para que se vea pro) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500 font-medium">Ventas del mes</p>
-              <p className="text-2xl font-bold text-gray-800">$1.240.500</p>
-            </div>
-            <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center text-green-600">
-              <TrendingUp size={24} />
-            </div>
-          </div>
-          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500 font-medium">Pedidos Pendientes</p>
-              <p className="text-2xl font-bold text-gray-800">14</p>
-            </div>
-            <div className="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center text-amber-600">
-              <AlertCircle size={24} />
-            </div>
-          </div>
-          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500 font-medium">Envíos Completados</p>
-              <p className="text-2xl font-bold text-gray-800">128</p>
-            </div>
-            <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
-              <CheckCircle2 size={24} />
-            </div>
-          </div>
-        </div>
-
-        {/* Tarjetas de Navegación */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {cards.map(c => (
+      <main className="flex-1 max-w-6xl mx-auto w-full px-8 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {cards.map((c, i) => (
             <Link
+              key={i}
               to={c.link}
-              key={c.title}
-              className="group bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 relative overflow-hidden"
+              className="group relative bg-white rounded-3xl border border-gray-100 p-8 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all overflow-hidden"
             >
-              {/* Decoración de fondo */}
-              <div className={`absolute -right-6 -top-6 w-24 h-24 ${c.bg} rounded-full opacity-50 group-hover:scale-150 transition-transform duration-500`}></div>
-              
-              <div className="relative flex items-start gap-5">
-                <div className={`p-4 rounded-xl ${c.bg} ${c.color} shadow-sm group-hover:scale-110 transition-transform`}>
-                  <c.Icon className="w-7 h-7" strokeWidth={2.5} />
+              <div className="relative z-10 flex items-start gap-6">
+                <div className={`p-4 rounded-2xl ${c.bg} ${c.color} group-hover:scale-110 transition-transform`}>
+                  <c.Icon className="w-8 h-8" strokeWidth={2.5} />
                 </div>
-                <div className="flex-1 pt-1">
-                  <h3 className="font-bold text-gray-800 text-lg group-hover:text-blue-900 transition-colors">
+                <div className="flex-1">
+                  <h3 className="font-bold text-gray-900 text-xl group-hover:text-blue-900 transition-colors">
                     {c.title}
                   </h3>
-                  <p className="text-gray-500 text-sm mt-1 leading-relaxed">{c.desc}</p>
-                  <span className={`inline-flex items-center gap-1 mt-4 text-sm font-bold ${c.color}`}>
-                    {c.label} <span className="group-hover:translate-x-1 transition-transform">&rarr;</span>
-                  </span>
+                  <p className="text-gray-500 text-sm mt-2 leading-relaxed">
+                    {c.desc}
+                  </p>
+                  <div className={`mt-6 inline-flex items-center gap-2 text-sm font-black uppercase tracking-wider ${c.color}`}>
+                    {c.label} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </div>
                 </div>
               </div>
+              {/* Decoración sutil de fondo */}
+              <div className={`absolute -right-8 -bottom-8 w-32 h-32 ${c.bg} rounded-full opacity-20 group-hover:scale-150 transition-transform duration-700`}></div>
             </Link>
           ))}
         </div>
+
+        {/* Sección Extra de "Estado" */}
+        <div className="mt-12 bg-blue-900 rounded-3xl p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl shadow-blue-900/30">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm">
+              <Settings className="w-6 h-6 animate-spin-slow" />
+            </div>
+            <div>
+              <h4 className="font-bold text-lg">Optimización Logística</h4>
+              <p className="text-blue-200 text-sm">Todos los sistemas están operando con normalidad.</p>
+            </div>
+          </div>
+          <button className="bg-white text-blue-900 px-6 py-3 rounded-xl font-bold text-sm hover:bg-blue-50 transition-colors">
+            Ver Reportes
+          </button>
+        </div>
       </main>
 
-      {/* ── FOOTER ── */}
-      <footer className="bg-white border-t border-gray-200 px-6 py-6 text-center mt-auto">
-        <p className="text-sm text-gray-600 font-medium">
-          SmartLogix &middot; Plataforma Logística para PYMEs
+      <footer className="px-8 py-8 text-center">
+        <p className="text-xs text-gray-400 font-bold tracking-widest uppercase">
+          SmartLogix Platform v2.0 &middot; 2026
         </p>
-        <p className="text-xs text-gray-400 mt-1">Versión 1.0.0 &middot; Área Segura</p>
       </footer>
     </div>
   )

@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { login as loginService, register as registerService } from '../api/perfilService'
+import { Lock, User, Mail, ArrowRight } from 'lucide-react'
 
 function Login() {
   const [mode, setMode]         = useState('login')
@@ -29,97 +30,80 @@ function Login() {
     try {
       let token
       if (mode === 'login') {
-        token = await loginService({
-          username: form.username,
-          password: form.password,
-        })
+        token = await loginService({ username: form.username, password: form.password })
       } else {
-        token = await registerService({
-          username: form.username,
-          password: form.password,
-          email: form.email,
-        })
+        token = await registerService({ username: form.username, password: form.password, email: form.email })
       }
       login(token)
-      navigate('/catalogo')
+      // CAMBIO: Ahora redirige a gestión inmediatamente
+      navigate('/gestion')
     } catch (err) {
       const msg = err.response?.data?.message ?? err.response?.data?.error
-      setError(msg ?? 'Error al procesar la solicitud.')
+      setError(msg ?? 'Error en la autenticación. Revisa tus datos.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-blue-50 flex items-center justify-center px-4">
-      <div className="bg-white w-full max-w-md rounded-2xl shadow-lg p-8">
-
-        {/* Header */}
+    <div className="min-h-[80vh] flex items-center justify-center px-6 py-12">
+      <div className="bg-white w-full max-w-md rounded-3xl shadow-xl border border-gray-100 p-8 md:p-10">
+        
         <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-black">SL</span>
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-50 rounded-2xl mb-4">
+            <Lock className="w-8 h-8 text-blue-900" />
           </div>
-          <h1 className="text-2xl font-bold text-blue-900">
-            {mode === 'login' ? 'Bienvenido' : 'Crear Cuenta'}
+          <h1 className="text-2xl font-bold text-gray-900">
+            {mode === 'login' ? 'Bienvenido de nuevo' : 'Crea tu cuenta'}
           </h1>
-          <p className="text-gray-500 text-sm mt-1">
-            {mode === 'login'
-              ? 'Ingresa a tu cuenta SmartLogix'
-              : 'Regístrate en SmartLogix'}
+          <p className="text-gray-500 text-sm mt-2">
+            Ingresa a la plataforma logística de SmartLogix
           </p>
         </div>
 
-        {/* Formulario */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1">
-              Usuario
-            </label>
-            <input
-              type="text"
-              name="username"
-              value={form.username}
-              onChange={handleChange}
-              placeholder="tu_usuario"
-              required
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          {mode === 'register' && (
-            <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">
-                Correo electrónico
-              </label>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          <div className="space-y-4">
+            <div className="relative">
+              <User className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
               <input
-                type="email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                placeholder="correo@ejemplo.com"
+                type="text"
+                name="username"
+                placeholder="Usuario"
                 required
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm"
+                onChange={handleChange}
               />
             </div>
-          )}
 
-          <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1">
-              Contraseña
-            </label>
-            <input
-              type="password"
-              name="password"
-              value={form.password}
-              onChange={handleChange}
-              placeholder="••••••••"
-              required
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            {mode === 'register' && (
+              <div className="relative">
+                <Mail className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Correo electrónico"
+                  required
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm"
+                  onChange={handleChange}
+                />
+              </div>
+            )}
+
+            <div className="relative">
+              <Lock className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+              <input
+                type="password"
+                name="password"
+                placeholder="Contraseña"
+                required
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm"
+                onChange={handleChange}
+              />
+            </div>
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-2.5">
+            <div className="bg-red-50 text-red-600 text-xs font-medium p-3 rounded-lg border border-red-100">
               {error}
             </div>
           )}
@@ -127,43 +111,24 @@ function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="bg-blue-900 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-800 transition-colors disabled:opacity-60 mt-2"
+            className="w-full bg-blue-900 text-white font-bold py-3.5 rounded-xl hover:bg-blue-800 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20 disabled:opacity-70"
           >
-            {loading
-              ? 'Procesando…'
-              : mode === 'login'
-              ? 'Iniciar Sesión'
-              : 'Crear Cuenta'}
+            {loading ? 'Cargando...' : mode === 'login' ? 'Iniciar Sesión' : 'Registrarse'}
+            {!loading && <ArrowRight className="w-4 h-4" />}
           </button>
         </form>
 
-        {/* Footer */}
-        <p className="text-center text-sm text-gray-500 mt-6">
-          {mode === 'login' ? (
-            <>
-              ¿No tienes cuenta?{' '}
-              <button
-                type="button"
-                onClick={toggleMode}
-                className="text-blue-700 font-medium hover:underline bg-transparent border-none p-0 cursor-pointer"
-              >
-                Regístrate
-              </button>
-            </>
-          ) : (
-            <>
-              ¿Ya tienes cuenta?{' '}
-              <button
-                type="button"
-                onClick={toggleMode}
-                className="text-blue-700 font-medium hover:underline bg-transparent border-none p-0 cursor-pointer"
-              >
-                Inicia sesión
-              </button>
-            </>
-          )}
-        </p>
-
+        <div className="mt-8 pt-6 border-t border-gray-100 text-center">
+          <p className="text-sm text-gray-500">
+            {mode === 'login' ? '¿No tienes una cuenta?' : '¿Ya eres miembro?'}
+            <button
+              onClick={toggleMode}
+              className="ml-2 text-blue-700 font-bold hover:underline"
+            >
+              {mode === 'login' ? 'Regístrate aquí' : 'Inicia sesión'}
+            </button>
+          </p>
+        </div>
       </div>
     </div>
   )
