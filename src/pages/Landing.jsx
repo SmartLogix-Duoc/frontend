@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { Package, ShoppingCart, Truck, User, LayoutDashboard, Settings } from 'lucide-react'
+import { Package, ShoppingCart, Truck, User, LayoutDashboard, Settings, ArrowRight } from 'lucide-react'
 
 const cards = [
   {
@@ -16,7 +16,7 @@ const cards = [
     Icon: Package,
     title: 'Gestión de Inventario',
     desc: 'Administra productos, stock y categorías.',
-    link: '/catalogo', // Podrías cambiar esto a /inventario si ya limpiaste la ruta
+    link: '/inventario',
     label: 'Controlar Stock',
     color: 'text-blue-600',
     bg: 'bg-blue-50'
@@ -98,7 +98,7 @@ function Landing() {
         <div className="mt-12 bg-blue-900 rounded-3xl p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl shadow-blue-900/30">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm">
-              <Settings className="w-6 h-6 animate-spin-slow" />
+              <Settings className="w-6 h-6" />
             </div>
             <div>
               <h4 className="font-bold text-lg">Optimización Logística</h4>
