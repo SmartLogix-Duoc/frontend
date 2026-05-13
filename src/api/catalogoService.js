@@ -1,24 +1,11 @@
-import axios from 'axios'
+import api from './client'
 
-const BASE_URL = import.meta.env.VITE_INVENTARIO_URL
-
-const api = axios.create({ baseURL: BASE_URL })
-
-api.interceptors.request.use(config => {
-  const token = localStorage.getItem('token')
-  if (token) config.headers.Authorization = `Bearer ${token}`
-  return config
-})
-
-// ── Endpoints ─────────────────────────────────────────────────────────────────
-
-/**
- * Obtiene todos los productos del catálogo.
- * GET /api/products
- * Devuelve: [{ id, name, description, price }, ...]
- * @returns {Promise<Array>} Lista de productos
- */
 export const getProductos = async () => {
   const res = await api.get('/api/products')
   return Array.isArray(res.data) ? res.data : (res.data.data ?? [])
+}
+
+export const getProductoById = async (id) => {
+  const res = await api.get(`/api/products/${id}`)
+  return res.data
 }

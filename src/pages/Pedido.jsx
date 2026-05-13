@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import axios from 'axios'
+import { getPedidos } from '../api/pedidoService'
 
-// Mapeo de estados reales del backend → estilo
 const estadoEstilo = {
   'Pendiente':  'bg-yellow-100 text-yellow-700',
   'Procesando': 'bg-blue-100 text-blue-700',
@@ -18,22 +17,11 @@ function Pedido() {
   const [error, setError]               = useState(null)
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-
-    axios
-      .get('http://localhost:8003/api/v1/orders/', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(res => {
-        // El backend devuelve { success: true, data: [...] }
-        const lista = Array.isArray(res.data) ? res.data : (res.data.data ?? [])
-        setPedidos(lista)
-      })
+    getPedidos()
+      .then(lista => setPedidos(lista))
       .catch(err => setError(err.response?.data?.error ?? err.message))
       .finally(() => setLoading(false))
   }, [])
-
-  // ── Estados de carga y error ──────────────────────────────────────────────
 
   if (loading) {
     return (
@@ -52,12 +40,9 @@ function Pedido() {
     )
   }
 
-  // ── Vista principal ───────────────────────────────────────────────────────
-
   return (
     <div className="max-w-4xl mx-auto px-6 py-10">
 
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-blue-900 mb-1">Mis Pedidos</h1>
         <p className="text-gray-500 text-sm">{pedidos.length} pedidos registrados</p>
@@ -77,7 +62,6 @@ function Pedido() {
               key={pedido.order_id}
               className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden"
             >
-              {/* Header del pedido */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <div className="flex items-center gap-4">
                   <div>
@@ -113,7 +97,6 @@ function Pedido() {
                 </div>
               </div>
 
-              {/* Detalle expandible */}
               {pedidoActivo === pedido.order_id && (
                 <div className="px-6 py-4 bg-gray-50">
                   <p className="text-xs font-semibold text-gray-500 uppercase mb-3">

@@ -1,69 +1,85 @@
 import { Routes, Route } from 'react-router-dom'
-import Landing  from '../pages/Landing'
-import Login    from '../pages/Login'
-import Catalogo from '../pages/Catalogo'
-import Producto from '../pages/Producto'
-import Perfil   from '../pages/Perfil'
-import Pedido   from '../pages/Pedido'
-import Envio    from '../pages/Envio'
+
+// ── Layouts ──
+import PanaderiaLayout from '../components/layout/PanaderiaLayout'
+import SmartLogixLayout from '../components/layout/SmartLogixLayout'
+
+// ── Páginas Públicas (Panadería) ──
+import Panaderia from '../pages/Panaderia'
+import MenuPanaderia from '../pages/MenuPanaderia'
+import DetalleProducto from '../pages/DetalleProducto'
+
+// ── Páginas Privadas (SmartLogix) ──
+import Login from '../pages/Login'
+import Landing from '../pages/Landing'
+import GestionInventario from '../pages/GestionInventario'
+import Perfil from '../pages/Perfil'
+import Pedido from '../pages/Pedido'
+import Envio from '../pages/Envio'
+
 import PrivateRoute from './PrivateRoute'
 
 function AppRoutes() {
   return (
     <Routes>
 
-      {/* ── Rutas públicas: cualquiera puede acceder ──────────────────────── */}
-      <Route path="/"             element={<Landing />} />
-      <Route path="/login"        element={<Login />} />
-      <Route path="/catalogo"     element={<Catalogo />} />
-      <Route path="/producto/:id" element={<Producto />} />
+      {/* ── MUNDO 1: PANADERÍA (B2C) ── */}
+      <Route element={<PanaderiaLayout />}>
+        <Route path="/" element={<Panaderia />} />
+        <Route path="/menu" element={<MenuPanaderia />} />
+        <Route path="/detalle/:id" element={<DetalleProducto />} />
+      </Route>
 
-      {/* ── Rutas protegidas: requieren sesión activa ─────────────────────── */}
-      <Route path="/pedidos" element={
-        <PrivateRoute roles={['ADMIN', 'USER']}>
-          <Pedido />
-        </PrivateRoute>
-      } />
-      <Route path="/envio/:id" element={
-        <PrivateRoute roles={['ADMIN', 'USER']}>
-          <Envio />
-        </PrivateRoute>
-      } />
-      <Route path="/perfil" element={
-        <PrivateRoute roles={['ADMIN', 'USER']}>
-          <Perfil />
-        </PrivateRoute>
-      } />
+      {/* ── MUNDO 2: SOFTWARE LOGÍSTICO (SmartLogix) ── */}
+      <Route element={<SmartLogixLayout />}>
+        <Route path="/login" element={<Login />} />
+        
+        {/* Rutas protegidas para ADMIN / USER */}
+        <Route path="/gestion" element={
+          <PrivateRoute roles={['ADMIN', 'USER']}>
+            <Landing />
+          </PrivateRoute>
+        } />
 
-      {/* ── Rutas protegidas: solo ADMIN ─────────────────────────────────── */}
-      {/* <Route path="/admin/..." element={
-        <PrivateRoute roles={['ADMIN']}>
-          <AdminPage />
-        </PrivateRoute>
-      } /> */}
+        {/* AQUÍ ESTÁ LA RUTA QUE TE DABA ERROR */}
+        <Route path="/inventario" element={
+          <PrivateRoute roles={['ADMIN', 'USER']}>
+            <GestionInventario />
+          </PrivateRoute>
+        } />
 
-      {/* ── Rutas protegidas: CLIENT (reservado, sin página aún) ─────────── */}
-      <Route path="/client" element={
-        <PrivateRoute roles={['CLIENT']}>
-          <div className="min-h-screen flex items-center justify-center text-center px-6">
-            <div>
-              <p className="text-5xl mb-4">🚧</p>
-              <p className="text-2xl font-bold text-blue-900 mb-2">Próximamente</p>
-              <p className="text-gray-500 text-sm">
-                Esta sección está en desarrollo.
-              </p>
+        <Route path="/pedidos" element={
+          <PrivateRoute roles={['ADMIN', 'USER']}>
+            <Pedido />
+          </PrivateRoute>
+        } />
+
+        <Route path="/envio/:id" element={
+          <PrivateRoute roles={['ADMIN', 'USER']}>
+            <Envio />
+          </PrivateRoute>
+        } />
+
+        <Route path="/perfil" element={
+          <PrivateRoute roles={['ADMIN', 'USER']}>
+            <Perfil />
+          </PrivateRoute>
+        } />
+
+        {/* Ruta para Clientes B2B */}
+        <Route path="/client" element={
+          <PrivateRoute roles={['CLIENT']}>
+            <div className="min-h-screen flex items-center justify-center">
+              <p className="text-2xl font-bold text-blue-900">Próximamente para clientes</p>
             </div>
-          </div>
-        </PrivateRoute>
-      } />
+          </PrivateRoute>
+        } />
+      </Route>
 
-      {/* ── 404 ──────────────────────────────────────────────────────────── */}
+      {/* 404 */}
       <Route path="*" element={
-        <div className="min-h-screen flex items-center justify-center text-center px-6">
-          <div>
-            <p className="text-6xl font-bold text-blue-900 mb-4">404</p>
-            <p className="text-gray-500">Página no encontrada</p>
-          </div>
+        <div className="min-h-screen flex items-center justify-center">
+          <p className="text-xl">Página no encontrada</p>
         </div>
       } />
 

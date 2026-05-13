@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import axios from 'axios'
+import { getProductos } from '../api/catalogoService'
 
 function Catalogo() {
   const [productos, setProductos]         = useState([])
@@ -9,30 +8,16 @@ function Catalogo() {
   const [loading, setLoading]             = useState(true)
   const [error, setError]                 = useState(null)
 
-  // ── Carga de productos desde MS Inventario ────────────────────────────────
   useEffect(() => {
-    const token = localStorage.getItem('token')
-
-    // GET /api/products → [{ id, name, description, price }, ...]
-    // El ProductDTO no incluye categoria ni stock
-    axios
-      .get('http://localhost:8002/api/products', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(res => {
-        const lista = Array.isArray(res.data) ? res.data : (res.data.data ?? [])
-        setProductos(lista)
-      })
+    getProductos()
+      .then(lista => setProductos(lista))
       .catch(err => setError(err.response?.data?.error ?? err.message))
       .finally(() => setLoading(false))
   }, [])
 
-  // ── Filtrado por nombre (categoria no existe en el backend) ───────────────
   const productosFiltrados = productos.filter(p =>
     p.name.toLowerCase().includes(busqueda.toLowerCase())
   )
-
-  // ── Estados de carga y error ──────────────────────────────────────────────
 
   if (loading) {
     return (
@@ -51,12 +36,9 @@ function Catalogo() {
     )
   }
 
-  // ── Vista principal ───────────────────────────────────────────────────────
-
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
 
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-blue-900 mb-1">Catálogo</h1>
         <p className="text-gray-500 text-sm">
@@ -64,7 +46,6 @@ function Catalogo() {
         </p>
       </div>
 
-      {/* Búsqueda */}
       <div className="mb-8">
         <input
           type="text"
@@ -75,7 +56,6 @@ function Catalogo() {
         />
       </div>
 
-      {/* Grid de productos */}
       {productosFiltrados.length === 0 ? (
         <div className="text-center py-20 text-gray-400">
           <p className="text-4xl mb-3">🔍</p>
@@ -90,12 +70,10 @@ function Catalogo() {
               to={`/producto/${producto.id}`}
               className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-shadow flex flex-col gap-3"
             >
-              {/* Imagen placeholder */}
               <div className="bg-blue-50 rounded-lg h-36 flex items-center justify-center">
                 <span className="text-4xl">📦</span>
               </div>
 
-              {/* Info */}
               <div className="flex-1">
                 <h3 className="text-sm font-semibold text-gray-800 mt-0.5 leading-tight">
                   {producto.name}
@@ -107,7 +85,6 @@ function Catalogo() {
                 )}
               </div>
 
-              {/* Precio */}
               <div className="flex items-center justify-between">
                 <span className="text-blue-900 font-bold text-sm">
                   ${Number(producto.price).toLocaleString('es-CL')}

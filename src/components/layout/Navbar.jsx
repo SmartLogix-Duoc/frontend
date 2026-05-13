@@ -7,7 +7,8 @@ const publicLinks = [
 ]
 
 const privateLinks = [
-  { label: 'Catálogo',    path: '/catalogo' },
+  { label: 'Gesti\u00f3n',  path: '/gestion' },
+  { label: 'Cat\u00e1logo', path: '/catalogo' },
   { label: 'Mis Pedidos', path: '/pedidos' },
 ]
 

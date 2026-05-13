@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import axios from 'axios'
-
-const BASE_URL = 'http://localhost:8004'
+import { getEnvioConTracking } from '../api/envioService'
 
 const estadoEstilo = {
   PENDING:    'bg-yellow-100 text-yellow-700',
@@ -34,25 +32,14 @@ function Envio() {
   const [error, setError]       = useState(null)
 
   useEffect(() => {
-    const token   = localStorage.getItem('token')
-    const headers = { Authorization: `Bearer ${token}` }
-
-    // Dos llamadas en paralelo:
-    // GET /api/shipments/{id}           → datos del envío
-    // GET /api/shipments/{id}/tracking  → historial de eventos
-    Promise.all([
-      axios.get(`${BASE_URL}/api/shipments/${id}`, { headers }),
-      axios.get(`${BASE_URL}/api/shipments/${id}/tracking`, { headers }),
-    ])
-      .then(([envioRes, trackingRes]) => {
-        setEnvio(envioRes.data)
-        setTracking(trackingRes.data ?? [])
+    getEnvioConTracking(id)
+      .then(({ envio, tracking }) => {
+        setEnvio(envio)
+        setTracking(tracking)
       })
       .catch(err => setError(err.response?.data?.detail ?? err.message))
       .finally(() => setLoading(false))
   }, [id])
-
-  // ── Estados de carga y error ──────────────────────────────────────────────
 
   if (loading) {
     return (
@@ -77,12 +64,9 @@ function Envio() {
 
   const pasoActual = pasos.indexOf(envio.status)
 
-  // ── Vista principal ───────────────────────────────────────────────────────
-
   return (
     <div className="max-w-4xl mx-auto px-6 py-10">
 
-      {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-gray-400 mb-8">
         <Link to="/pedidos" className="hover:text-blue-700 transition-colors">
           Mis Pedidos
@@ -91,7 +75,6 @@ function Envio() {
         <span className="text-gray-600">Envío {envio.shipment_code}</span>
       </div>
 
-      {/* Header */}
       <div className="flex items-start justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-blue-900 mb-1">
@@ -104,16 +87,13 @@ function Envio() {
         </span>
       </div>
 
-      {/* Progreso */}
       {envio.status !== 'CANCELLED' && (
         <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
           <h2 className="text-sm font-semibold text-gray-600 uppercase mb-6">
             Progreso del envío
           </h2>
           <div className="flex items-center justify-between relative">
-            {/* Línea de fondo */}
             <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200 z-0" />
-            {/* Línea de progreso */}
             <div
               className="absolute top-4 left-0 h-0.5 bg-blue-600 z-0 transition-all"
               style={{ width: `${(pasoActual / (pasos.length - 1)) * 100}%` }}
@@ -137,7 +117,6 @@ function Envio() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
-        {/* Detalles */}
         <div className="bg-white border border-gray-200 rounded-xl p-6">
           <h2 className="text-sm font-semibold text-gray-600 uppercase mb-4">
             Detalles del envío
@@ -170,7 +149,6 @@ function Envio() {
           </div>
         </div>
 
-        {/* Ruta */}
         <div className="bg-white border border-gray-200 rounded-xl p-6">
           <h2 className="text-sm font-semibold text-gray-600 uppercase mb-4">
             Ruta
@@ -196,7 +174,6 @@ function Envio() {
 
       </div>
 
-      {/* Tracking */}
       <div className="bg-white border border-gray-200 rounded-xl p-6">
         <h2 className="text-sm font-semibold text-gray-600 uppercase mb-4">
           Historial de tracking
